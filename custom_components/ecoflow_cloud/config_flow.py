@@ -15,11 +15,18 @@ from . import ECOFLOW_DOMAIN, CONFIG_VERSION, CONF_ACCESS_KEY, CONF_SECRET_KEY, 
     CONF_SELECT_DEVICE_KEY, CONF_DEVICE_TYPE, CONF_DEVICE_LIST, CONF_LOAD_ALL_DEVICES, \
     CONF_DEVICE_NAME, CONF_DEVICE_ID, OPTS_DIAGNOSTIC_MODE, \
     OPTS_POWER_STEP, OPTS_REFRESH_PERIOD_SEC, DEFAULT_REFRESH_PERIOD_SEC, extract_options, extract_devices, \
-    DeviceOptions, DeviceData, CONF_GROUP
+    DeviceOptions, DeviceData, CONF_GROUP, CONF_REGION, DEFAULT_REGION
 from .api import EcoflowException
 from .devices import EcoflowDeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
+
+REGION_SELECTOR = selector.SelectSelector(
+    selector.SelectSelectorConfig(
+        options=["eu", "us"],
+        mode=selector.SelectSelectorMode.DROPDOWN,
+    )
+)
 
 API_SELECT_DEVICE_SCHEMA = vol.Schema({
     vol.Required(CONF_SELECT_DEVICE_KEY): str
@@ -209,6 +216,7 @@ class EcoflowConfigFlow(ConfigFlow, domain=ECOFLOW_DOMAIN):
         api_keys_auth_schema = vol.Schema({
             vol.Required(CONF_ACCESS_KEY, default=self.new_data.get(CONF_ACCESS_KEY, "")): str,
             vol.Required(CONF_SECRET_KEY, default=self.new_data.get(CONF_SECRET_KEY, "")): str,
+            vol.Required(CONF_REGION, default=self.new_data.get(CONF_REGION, DEFAULT_REGION)): REGION_SELECTOR,
             # vol.Required(CONF_LOAD_ALL_DEVICES, default=self.new_data.get(CONF_LOAD_ALL_DEVICES, False)): bool
         })
 
@@ -217,11 +225,17 @@ class EcoflowConfigFlow(ConfigFlow, domain=ECOFLOW_DOMAIN):
 
         self.new_data[CONF_ACCESS_KEY] = user_input.get(CONF_ACCESS_KEY)
         self.new_data[CONF_SECRET_KEY] = user_input.get(CONF_SECRET_KEY)
+        self.new_data[CONF_REGION] = user_input.get(CONF_REGION, DEFAULT_REGION)
         # self.new_data[CONF_LOAD_ALL_DEVICES] = user_input.get(CONF_LOAD_ALL_DEVICES)
         self.new_data[CONF_LOAD_ALL_DEVICES] = False
 
         from .api.public_api import EcoflowPublicApiClient
-        self.auth = EcoflowPublicApiClient(self.new_data[CONF_ACCESS_KEY], self.new_data[CONF_SECRET_KEY], self.new_data[CONF_GROUP])
+        self.auth = EcoflowPublicApiClient(
+            self.new_data[CONF_ACCESS_KEY],
+            self.new_data[CONF_SECRET_KEY],
+            self.new_data[CONF_GROUP],
+            self.new_data[CONF_REGION],
+        )
 
         errors: Dict[str, str] = {}
         try:

@@ -13,7 +13,10 @@ from ..devices import DiagnosticDevice, EcoflowDeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
-BASE_URI = "https://api-a.ecoflow.com/iot-open/sign"
+BASE_URIS = {
+    "eu": "https://api-e.ecoflow.com/iot-open/sign",
+    "us": "https://api-a.ecoflow.com/iot-open/sign",
+}
 
 
 # from FB
@@ -25,11 +28,13 @@ BASE_URI = "https://api-a.ecoflow.com/iot-open/sign"
 
 class EcoflowPublicApiClient(EcoflowApiClient):
 
-    def __init__(self, access_key: str, secret_key: str, group: str):
+    def __init__(self, access_key: str, secret_key: str, group: str, region: str = "us"):
         super().__init__()
         self.access_key = access_key
         self.secret_key = secret_key
         self.group = group
+        self.region = region.lower()
+        self.base_uri = BASE_URIS.get(self.region, BASE_URIS["us"])
         self.nonce = str(random.randint(10000, 1000000))
         self.timestamp = str(int(time.time() * 1000))
 
@@ -139,7 +144,7 @@ class EcoflowPublicApiClient(EcoflowApiClient):
                 'sign': sign
             }
 
-            resp = await session.get(f"{BASE_URI}{endpoint}?{params_str}", headers=headers)
+            resp = await session.get(f"{self.base_uri}{endpoint}?{params_str}", headers=headers)
             return await self._get_json_response(resp)
 
     def __create_device_info(self, device_sn: str, device_name: str, device_type: str, status: int = -1) -> EcoflowDeviceInfo:

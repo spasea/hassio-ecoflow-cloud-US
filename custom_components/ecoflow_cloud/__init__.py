@@ -40,6 +40,7 @@ CONF_USERNAME: Final = "username"
 CONF_PASSWORD: Final = "password"
 CONF_ACCESS_KEY: Final = "access_key"
 CONF_SECRET_KEY: Final = "secret_key"
+CONF_REGION: Final = "region"
 CONF_LOAD_ALL_DEVICES: Final = "load_all_devices"
 CONF_GROUP: Final = "group"
 CONF_DEVICE_LIST: Final = "devices_list"
@@ -55,6 +56,7 @@ OPTS_POWER_STEP: Final = "power_step"
 OPTS_REFRESH_PERIOD_SEC: Final = "refresh_period_sec"
 
 DEFAULT_REFRESH_PERIOD_SEC: Final = 5
+DEFAULT_REGION: Final = "us"
 
 
 
@@ -190,7 +192,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     elif CONF_ACCESS_KEY in entry.data and CONF_SECRET_KEY in entry.data:
         api_client = EcoflowPublicApiClient(entry.data[CONF_ACCESS_KEY], entry.data[CONF_SECRET_KEY],
-                                            entry.data[CONF_GROUP])
+                                            entry.data[CONF_GROUP], entry.data.get(CONF_REGION, DEFAULT_REGION))
     else:
         return False
 
