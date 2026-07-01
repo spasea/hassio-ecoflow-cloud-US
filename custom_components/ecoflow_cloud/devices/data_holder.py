@@ -92,7 +92,15 @@ class EcoflowDataHolder:
     def update_to_target_state(self, target_state: dict[str, Any]):
         # key can be xpath!
         for key, value in target_state.items():
-            jp.parse(key).update(self.params, value)
+            key_expr = jp.parse(key)
+            if key_expr.find(self.params):
+                key_expr.update(self.params, value)
+            elif len(key) >= 2 and key[0] == "'" and key[-1] == "'":
+                # Flat public-api keys like 'mppt.cfgChgWatts' do not get
+                # created by jsonpath update if they are missing yet.
+                self.params[key[1:-1]] = value
+            else:
+                key_expr.update(self.params, value)
 
         self.set_params_time = dt.utcnow()
 
