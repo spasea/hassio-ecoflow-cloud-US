@@ -16,6 +16,9 @@ class River2Pro(BaseDevice):
     def default_charging_power_step() -> int:
         return 50
 
+    def combined_battery_level_key(self) -> str:
+        return "bms_emsStatus.lcdShowSoc"
+
     def sensors(self, client: EcoflowApiClient) -> list[BaseSensorEntity]:
         return [
             LevelSensorEntity(client, self, "bms_bmsStatus.soc", const.MAIN_BATTERY_LEVEL)
@@ -27,7 +30,7 @@ class River2Pro(BaseDevice):
             CapacitySensorEntity(client, self, "bms_bmsStatus.remainCap", const.MAIN_REMAIN_CAPACITY, False),
 
             LevelSensorEntity(client, self, "bms_bmsStatus.soh", const.SOH),
-            LevelSensorEntity(client, self, "bms_emsStatus.lcdShowSoc", const.COMBINED_BATTERY_LEVEL),
+            LevelSensorEntity(client, self, self.combined_battery_level_key(), const.COMBINED_BATTERY_LEVEL),
 
             ChargingStateSensorEntity(client, self, "bms_emsStatus.chgState", const.BATTERY_CHARGING_STATE),
 
@@ -126,4 +129,3 @@ class River2Pro(BaseDevice):
                                     lambda value: {"moduleType": 5, "operateType": "acStandby",
                                                    "params": {"standbyMins": value}})
         ]
-

@@ -11,5 +11,9 @@ class River2Pro(InternalRiver2Pro):
         res = to_plain(res)
         return res
 
+    def combined_battery_level_key(self) -> str:
+        # Public API for RIVER 2 Pro exposes display SOC as pd.soc.
+        return "pd.soc"
+
     def _status_sensor(self, client: EcoflowApiClient) -> StatusSensorEntity:
         return StatusSensorEntity(client, self)
